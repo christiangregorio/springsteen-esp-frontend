@@ -1,0 +1,32 @@
+<div class="review-section">
+  <h4>📝 Review del concierto</h4>
+  
+  <div *ngIf="!isEditing">
+    <p *ngIf="review" class="review-text">{{ review }}</p>
+    <p *ngIf="!review" class="no-review">No hay review para este concierto</p>
+    
+    <div class="review-buttons">
+      <button class="btn-edit-review" (click)="startEditing()">
+        {{ review ? 'Editar Review' : 'Añadir Review' }}
+      </button>
+      
+      <button *ngIf="review" class="btn-delete-review" (click)="delete()">
+        Eliminar Review
+      </button>
+    </div>
+  </div>
+  
+  <div *ngIf="isEditing">
+    <textarea 
+      [(ngModel)]="reviewText" 
+      placeholder="Escribe tu review del concierto aquí..."
+      rows="4"
+      class="review-textarea">
+    </textarea>
+    
+    <div class="review-buttons">
+      <button class="btn-save-review" (click)="save()">Guardar</button>
+      <button class="btn-cancel-review" (click)="cancelEditing()">Cancelar</button>
+    </div>
+  </div>
+</div>

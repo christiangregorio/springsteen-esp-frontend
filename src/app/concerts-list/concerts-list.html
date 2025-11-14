@@ -1,0 +1,143 @@
+<div class="container">
+  <div class="top-banner">
+    <img src="images/springsteen-live-logo.png" alt="Banner de Bruce Springsteen" class="banner-image">
+  </div>
+  <!-- Usuario logueado -->
+  <div class="user-info">
+    <h3>👤 Usuario logueado: <strong>{{ currentUser?.email || 'N/A' }}</strong></h3>
+  </div>
+
+  <!-- Conciertos asistidos -->
+  <div *ngIf="attendedConcerts.length > 0" class="attended-concerts">
+    <h4>🎸 Mis conciertos asistidos ({{ attendedConcerts.length }}):</h4>
+    <ul class="attended-list">
+      <li *ngFor="let concert of attendedConcerts" class="attended-item">
+        <strong>{{ concert.date }}</strong> -
+        {{ concert.city }} ({{ concert.venue }}) -
+        <em>{{ concert.tour }}</em> -
+        Duración: {{ concert.duration }}
+      </li>
+    </ul>
+  </div>
+
+  <div *ngIf="attendedConcerts.length === 0 && currentUser">
+    <p><em>No has marcado asistencia a ningún concierto todavía.</em></p>
+  </div>
+
+  <hr>
+
+  <!-- Formulario CRUD -->
+  <form [formGroup]="form" (ngSubmit)="submit()" class="concert-form" id="concert-form">
+    <h3>{{ editMode ? '✏️ Editar Concierto' : '➕ Nuevo Concierto' }}</h3>
+
+    <label>
+      Fecha:
+      <input type="date" formControlName="date" required>
+    </label>
+
+    <label>
+      Ciudad:
+      <input type="text" formControlName="city" placeholder="Ej: Barcelona" required>
+    </label>
+
+    <label>
+      Recinto:
+      <input type="text" formControlName="venue" placeholder="Ej: Palau Sant Jordi" required>
+    </label>
+
+    <label>
+      Tour:
+      <input type="text" formControlName="tour" placeholder="Ej: The River Tour" required>
+    </label>
+
+    <label>
+      Duración:
+      <input type="text" formControlName="duration" placeholder="Ej: 2h 30m" required>
+    </label>
+
+    <!-- SECCIÓN DE CANCIONES -->
+    <div class="songs-form-section">
+      <h4>🎵 Canciones (opcional)</h4>
+
+      <div formArrayName="songs">
+        <div *ngFor="let song of songs.controls; let i = index" [formGroupName]="i" class="song-form-item">
+          <input formControlName="position" type="number" placeholder="#" class="song-position" min="1" />
+          <input formControlName="title" type="text" placeholder="Título de la canción" class="song-title" />
+          <button type="button" (click)="removeSong(i)" class="btn-remove-song" title="Eliminar canción">🗑️</button>
+        </div>
+      </div>
+
+      <button type="button" (click)="addSong()" class="btn-add-song">+ Añadir Canción</button>
+    </div>
+
+    <div class="form-buttons">
+      <button type="submit" [disabled]="!form.valid">
+        {{ editMode ? 'Actualizar' : 'Crear' }}
+      </button>
+      <button type="button" (click)="resetForm()" *ngIf="editMode" class="btn-cancel">
+        Cancelar
+      </button>
+    </div>
+  </form>
+
+  <hr>
+
+  <!-- Lista de conciertos -->
+  <div class="concert-list">
+    <h3>🎤 Conciertos registrados ({{ concerts.length }})</h3>
+
+    <div *ngIf="concerts.length === 0" class="no-concerts">
+      No hay conciertos registrados.
+    </div>
+
+    <ul *ngIf="concerts.length > 0">
+      <li *ngFor="let concert of concerts" class="concert-item" [class.attended]="isAttended(concert.id!)">
+
+        <div class="concert-header">
+          <strong>{{ concert.date }} - {{ concert.city }} ({{ concert.venue }})</strong>
+          <span *ngIf="isAttended(concert.id!)" class="badge-attended">✓ Asistido</span>
+        </div>
+
+        <div class="concert-info">
+          Tour: <strong>{{ concert.tour }}</strong> | Duración: {{ concert.duration }}
+        </div>
+
+        <!-- Botones CRUD y asistencia -->
+        <div class="buttons">
+          <button class="toggle-songs" (click)="toggleSongs(concert)">
+            {{ concert.showSongs ? '🔼 Ocultar canciones' : '🔽 Ver canciones' }}
+          </button>
+
+          <button class="edit" (click)="editConcert(concert)">✏️ Editar</button>
+
+          <button class="delete" (click)="deleteConcert(concert.id!)">🗑️ Borrar</button>
+
+          <button *ngIf="!isAttended(concert.id!)" class="attend" (click)="markAttendance(concert.id!)">
+            ✓ Marcar asistencia
+          </button>
+
+          <button *ngIf="isAttended(concert.id!)" class="remove-attend" (click)="removeAttendance(concert.id!)">
+            ✗ Quitar asistencia
+          </button>
+        </div>
+
+        <!-- Mostrar canciones -->
+        <div *ngIf="concert.showSongs" class="songs-section">
+          <div *ngIf="!concert.songs || concert.songs.length === 0" class="no-songs">
+            <em>No hay canciones registradas para este concierto.</em>
+          </div>
+
+          <ul *ngIf="concert.songs && concert.songs.length > 0" class="songs-list">
+            <li *ngFor="let song of concert.songs">
+              <strong>{{ song.position }}.</strong> {{ song.title || song.name }}
+            </li>
+          </ul>
+        </div>
+
+        <!-- SECCIÓN DE REVIEW -->
+        <app-concert-review [concertId]="concert.id!"></app-concert-review>
+
+      </li>
+    </ul>
+  </div>
+</div>
